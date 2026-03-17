@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+.msg { color: #d9534f; padding: 10px; background: #fdf7f7; border: 1px solid #d9534f; border-radius: 4px; }
+ul { list-style-type: none; padding: 0; }
+li { margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+input[type="text"] { padding: 5px; width: 200px; }
+button { padding: 5px 10px; cursor: pointer; }
