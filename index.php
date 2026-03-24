@@ -1,83 +1,35 @@
 <?php
-require_once 'init.php';
+session_start();
+$filename = 'profile.json';
+$data = json_decode(file_get_contents($filename), true);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    if (isset($_POST['add'])) {
-        $name = trim($_POST['name']);
-        if (empty($name)) {
-            $_SESSION['msg'] = "Pole nesmí být prázdné.";
-        } else {
-            try {
-                $stmt = $db->prepare("INSERT INTO interests (name) VALUES (?)");
-                $stmt->execute([$name]);
-                $_SESSION['msg'] = "Zájem byl přidán.";
-            } catch (PDOException $e) {
-                $_SESSION['msg'] = "Tento zájem už existuje.";
-            }
-        }
-    }
-
-    if (isset($_POST['delete'])) {
-        $stmt = $db->prepare("DELETE FROM interests WHERE id = ?");
-        $stmt->execute([$_POST['id']]);
-        $_SESSION['msg'] = "Zájem byl odstraněn.";
-    }
-
-    if (isset($_POST['update'])) {
-        $name = trim($_POST['new_name']);
-        if (empty($name)) {
-            $_SESSION['msg'] = "Pole nesmí být prázdné.";
-        } else {
-            try {
-                $stmt = $db->prepare("UPDATE interests SET name = ? WHERE id = ?");
-                $stmt->execute([$name, $_POST['id']]);
-                $_SESSION['msg'] = "Zájem byl upraven.";
-            } catch (PDOException $e) {
-                // Zachytí chybu, pokud se snažíš přejmenovat zájem na něco, co už existuje
-                $_SESSION['msg'] = "Tento zájem už existuje.";
-            }
-        }
-    }
-
-    header("Location: index.php");
-    exit;
-}
-
-$interests = $db->query("SELECT * FROM interests")->fetchAll(PDO::FETCH_ASSOC);
+// ROUTING LOGIKA
+$page = $_GET['page'] ?? 'home'; // Pokud není v URL nic, načti home
+$allowed_pages = ['home', 'interests', 'skills']; // Seznam povolených stránek
 ?>
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <title>IT Profil 7.0</title>
     <link rel="stylesheet" href="style.css">
-    <title>Zájmy z databáze</title>
 </head>
 <body>
-    <h1>Moje Zájmy</h1>
+    <nav>
+        <a href="?page=home">Domů</a>
+        <a href="?page=interests">Zájmy</a>
+        <a href="?page=skills">Dovednosti</a>
+    </nav>
 
-    <?php if (isset($_SESSION['msg'])): ?>
-        <p class="msg"><strong><?= htmlspecialchars($_SESSION['msg']) ?></strong></p>
-        <?php unset($_SESSION['msg']); ?>
-    <?php endif; ?>
-
-    <form method="post">
-        <input type="text" name="name" placeholder="Nový zájem">
-        <button type="submit" name="add">Přidat</button>
-    </form>
-    <hr>
-    <ul>
-        <?php foreach ($interests as $i): ?>
-            <li>
-                <form method="post" style="display:inline;">
-                    <input type="hidden" name="id" value="<?= $i['id'] ?>">
-                    <input type="text" name="new_name" value="<?= htmlspecialchars($i['name']) ?>">
-                    <button type="submit" name="update">Upravit</button>
-                    <button type="submit" name="delete">Smazat</button>
-                </form>
-            </li>
-        <?php endforeach; ?>
-    </ul>
+    <main>
+        <?php 
+        // Kontrola, zda stránka existuje v poli a fyzicky na disku
+        if (in_array($page, $allowed_pages) && file_exists("pages/{$page}.php")) {
+            include "pages/{$page}.php";
+        } else {
+            include "pages/not_found.php";
+        }
+        ?>
+    </main>
 </body>
 </html>
